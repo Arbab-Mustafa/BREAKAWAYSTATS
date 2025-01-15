@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model player_game_logs {
+  player_id            Int
+  game_id              Int
+  team_abbrev          String?                  @db.VarChar
+  home_road_flag       String?                  @db.VarChar
+  game_date            DateTime                 @db.Date
+  goals                Int                      @default(0)
+  assists              Int                      @default(0)
+  points               Int                      @default(0)
+  plus_minus           Int?                     @default(0)
+  power_play_goals     Int?                     @default(0)
+  power_play_points    Int?                     @default(0)
+  game_winning_goals   Int?                     @default(0)
+  ot_goals             Int?                     @default(0)
+  shots                Int                      @default(0)
+  shifts               Int?                     @default(0)
+  shorthanded_goals    Int?                     @default(0)
+  shorthanded_points   Int?                     @default(0)
+  opponent_abbrev      String?                  @db.VarChar
+  pim                  Int?                     @default(0)
+  toi                  Unsupported("interval")?
+  common_name_default  String?                  @db.VarChar
+  opponent_common_name String?                  @db.VarChar
+  first_name           String?                  @db.VarChar
+  last_name            String?                  @db.VarChar
+  position             String?                  @db.VarChar(50)
+
+  @@id([player_id, game_id])
+}
+
+model player_info_reordered {
+  team_abbrev String? @db.VarChar(3)
+  player_id   Int     @id @default(autoincrement())
+  first_name  String  @db.VarChar(50)
+  last_name   String  @db.VarChar(50)
+  position    String? @db.VarChar(10)
+}
+
+model skaters_stats {
+  player_id              Int      @unique(map: "unique_player_id")
+  Headshot_URL           String?  @map("Headshot URL")
+  Position               String
+  Games_Played           Int      @map("Games Played")
+  goals                  Int
+  assists                Int
+  points                 Int
+  plus_minus             Int?
+  Penalty_Minutes        Int      @map("Penalty Minutes")
+  Power_Play_Goals       Int?     @map("Power Play Goals")
+  Short_Handed_Goals     Int?     @map("Short-Handed Goals")
+  Game_Winning_Goals     Int?     @map("Game Winning Goals")
+  Overtime_Goals         Int?     @map("Overtime Goals")
+  Shots                  Int
+  Shooting__             Decimal? @map("Shooting %") @db.Decimal
+  Avg_TOI_Game__seconds_ Decimal? @map("Avg TOI/Game (seconds)") @db.Decimal
+  Avg_Shifts_Game_       Decimal? @map("Avg Shifts/Game\t") @db.Decimal
+  Faceoff_Win__          Decimal? @map("Faceoff Win %") @db.Decimal
+  first_name             String
+  last_name              String
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model staging_game_logs {
+  player_id            Int?
+  game_id              Int?
+  team_abbrev          String?                  @db.VarChar(10)
+  home_road_flag       String?                  @db.VarChar(1)
+  game_date            DateTime?                @db.Date
+  goals                Int?
+  assists              Int?
+  points               Int?
+  plus_minus           Int?
+  power_play_goals     Int?
+  power_play_points    Int?
+  game_winning_goals   Int?
+  ot_goals             Int?
+  shots                Int?
+  shifts               Int?
+  shorthanded_goals    Int?
+  shorthanded_points   Int?
+  opponent_abbrev      String?                  @db.VarChar(10)
+  pim                  Int?
+  toi                  Unsupported("interval")?
+  common_name_default  String?                  @db.VarChar(50)
+  opponent_common_name String?                  @db.VarChar(50)
+
+  @@ignore
+}
