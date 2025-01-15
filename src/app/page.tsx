@@ -1,11 +1,11 @@
 ﻿"use client";
 
-import { Header } from "@/components/hockey/Header";
-import { HockeyFilterBar } from "@/components/hockey/FilterBar";
-import { PlayerCard } from "@/components/hockey/PlayerCard";
+import { Header } from "../components/hockey/Header";
+import { HockeyFilterBar } from "../components/hockey/FilterBar";
+import { PlayerCard } from "../components/hockey/PlayerCard";
 import { useState, useEffect } from "react";
 import { FilterOptions } from "@/components/hockey/FilterBar";
-import { findPlayerGame, ScheduleResponse } from "@/utils/schedule";
+import { findPlayerGame, ScheduleResponse } from "../utils/schedule";
 
 interface APIError {
   error: string;
@@ -42,14 +42,16 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [scheduleData, setScheduleData] = useState<ScheduleResponse | null>(null);
+  const [scheduleData, setScheduleData] = useState<ScheduleResponse | null>(
+    null
+  );
   const [filters, setFilters] = useState<FilterOptions>({
     searchQuery: "",
     activeFilter: null,
     position: "",
     sortBy: "",
     showFavorites: false,
-    todayOnly: false
+    todayOnly: false,
   });
 
   const [page, setPage] = useState(1);
@@ -65,46 +67,49 @@ export default function Home() {
         setIsLoadingMore(true);
       }
       setError(null);
-      
+
       const params = new URLSearchParams();
-      
-      if (filters.activeFilter) params.append("activeFilter", filters.activeFilter);
+
+      if (filters.activeFilter)
+        params.append("activeFilter", filters.activeFilter);
       if (filters.position && filters.position !== "All") {
         params.append("position", filters.position);
       }
       if (filters.sortBy) params.append("sortBy", filters.sortBy);
-      if (filters.searchQuery) params.append("searchQuery", filters.searchQuery);
+      if (filters.searchQuery)
+        params.append("searchQuery", filters.searchQuery);
 
       params.append("page", pageNum.toString());
       params.append("limit", PLAYERS_PER_PAGE.toString());
       params.append("t", Date.now().toString());
 
-      console.log("Fetching with filters:", { 
+      console.log("Fetching with filters:", {
         activeFilter: filters.activeFilter,
         position: filters.position,
         sortBy: filters.sortBy,
         searchQuery: filters.searchQuery,
         page: pageNum,
         todayOnly: filters.todayOnly,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       const response = await fetch(`/api/players?${params}`, {
-        cache: 'no-store',
+        cache: "no-store",
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
         },
-        next: { revalidate: 0 }
+        next: { revalidate: 0 },
       });
-      
+
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMessage = (data as APIError).error || 
-                           (data as APIError).details || 
-                           "Failed to fetch players";
+        const errorMessage =
+          (data as APIError).error ||
+          (data as APIError).details ||
+          "Failed to fetch players";
         throw new Error(errorMessage);
       }
 
@@ -124,8 +129,10 @@ export default function Home() {
       if (pageNum === 1) {
         setPlayers(filteredData);
       } else {
-        setPlayers(prev => {
-          const existingPlayers = new Map(prev.map((player: Player) => [player.id, player]));
+        setPlayers((prev) => {
+          const existingPlayers = new Map(
+            prev.map((player: Player) => [player.id, player])
+          );
           filteredData.forEach((player: Player) => {
             existingPlayers.set(player.id, player);
           });
@@ -135,7 +142,6 @@ export default function Home() {
 
       setHasMore(filteredData.length === PLAYERS_PER_PAGE);
       setPage(pageNum);
-
     } catch (error) {
       console.error("Error fetching players:", error);
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -155,21 +161,20 @@ export default function Home() {
         }
 
         const scheduleResponse = await fetch(`/api/schedule?t=${Date.now()}`, {
-          cache: 'no-store',
+          cache: "no-store",
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
           },
-          next: { revalidate: 0 }
+          next: { revalidate: 0 },
         });
-        
+
         const scheduleData = await scheduleResponse.json();
-        
+
         if (!scheduleResponse.ok) {
           throw new Error(
-            (scheduleData as APIError).error || 
-            'Failed to fetch schedule'
+            (scheduleData as APIError).error || "Failed to fetch schedule"
           );
         }
 
@@ -194,10 +199,10 @@ export default function Home() {
     const newFavorites = favorites.includes(id)
       ? favorites.filter((fav) => fav !== id)
       : [...favorites, id];
-    
+
     setFavorites(newFavorites);
     localStorage.setItem("favorites", JSON.stringify(newFavorites));
-    
+
     if (filters.showFavorites) {
       await fetchPlayers(filters, 1);
     }
@@ -206,7 +211,7 @@ export default function Home() {
   const handleShowFavoritesAction = async (show: boolean) => {
     const newFilters = {
       ...filters,
-      showFavorites: show
+      showFavorites: show,
     };
     setFilters(newFilters);
     setPage(1);
@@ -222,9 +227,11 @@ export default function Home() {
   };
 
   // Filter displayed players for today's games
-  const displayPlayers = players.filter(player => {
+  const displayPlayers = players.filter((player) => {
     if (filters.todayOnly) {
-      const gameInfo = scheduleData ? findPlayerGame(scheduleData, player.teamAbbrev) : undefined;
+      const gameInfo = scheduleData
+        ? findPlayerGame(scheduleData, player.teamAbbrev)
+        : undefined;
       return gameInfo?.is_today === true;
     }
     return true;
@@ -261,16 +268,20 @@ export default function Home() {
                     ...player,
                     goal_odds: 2.5,
                     point_odds: 1.5,
-                    next_game: scheduleData ? findPlayerGame(scheduleData, player.teamAbbrev) : undefined
+                    next_game: scheduleData
+                      ? findPlayerGame(scheduleData, player.teamAbbrev)
+                      : undefined,
                   }}
                   isFavorite={favorites.includes(player.id)}
                   activeFilter={filters.activeFilter}
-                  onToggleFavoriteAction={async () => await handleToggleFavoriteAction(player.id)}
+                  onToggleFavoriteAction={async () =>
+                    await handleToggleFavoriteAction(player.id)
+                  }
                   onCardClickAction={handleCardClickAction}
                 />
               ))}
             </div>
-            
+
             {hasMore && !isLoadingMore && (
               <div className="text-center mt-8">
                 <button
@@ -281,7 +292,7 @@ export default function Home() {
                 </button>
               </div>
             )}
-            
+
             {isLoadingMore && (
               <div className="text-center mt-8">
                 <div className="text-emerald-500">Loading more players...</div>
